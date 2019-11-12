@@ -1,0 +1,542 @@
+"""
+Created on Thu Nov  7 12:42:38 2019
+
+@author: gopi.kakarapalli
+"""
+
+
+import cv2,sys
+import numpy as np
+import skimage,math
+from operator import itemgetter
+from collections import Counter
+from pylab import array, plot, show, axis, arange, figure, uint8 
+from PIL import Image, ImageEnhance
+
+class enhancement:
+    
+    def binarizeImage(inputImage,thresh=175):
+        maxvalue,thresh = cv2.threshold(inputImage,thresh,255,cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
+#            thresh = cv2.adaptiveThreshold(inputImage, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+        return ~thresh
+    def convertScaleAbs(inputimage,alpha=1.5,beta=0):
+        # Contrast control (1.0-3.0)
+        # Brightness control (0-100)
+        adjustedimage = cv2.convertScaleAbs(inputimage, alpha=alpha, beta=beta)
+        return adjustedimage
+    
+#    def PILImageEnhance(inputimage):
+#        scale_value=scale1.get()
+#        inputimage = ImageEnhance.Contrast(inputimage).enhance(scale_value)
+#        return inputimage
+    
+    def Blur(inputimage,bluytype):
+        if bluytype ==GaussianBlur:
+            inputimage = cv2.GaussianBlur(inputimage, (7,7), 0)
+        if bluytype ==medianBlur:    
+            cv2.medianBlur(inputimage,5)
+        return inputimage
+    def LUT(img_original,gamma = 25):
+        lookUpTable = np.empty((1,256), np.uint8)
+        for i in range(256):
+            lookUpTable[0,i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+        res = cv2.LUT(img_original, lookUpTable)
+        return res
+        
+    def Imageenhancement(inputImage):
+#             inputImage = cv2.equalizeHist(inputImage)
+#             clahe = cv2.createCLAHE(clipLimit=2.1, tileGridSize=(8,8))
+#             inputImage = clahe.apply(inputImage)
+#             inputImage = cv2.Laplacian(inputImage, cv2.CV_64F)#.var()
+#             kernel = np.ones((5,5),np.float32)/25
+#             inputImage1 = cv2.filter2D(inputImage,-1,kernel)
+#             inputImage =inputImage-inputImage1
+#             img = cv2.GaussianBlur(inputImage, (15,15),0)
+            gamma = 0.5
+            invGamma = 1.2 / gamma
+            table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+            inputImage = cv2.LUT(inputImage, table)
+            cleanImage = inputImage
+#            alpha = 2.0
+#            beta = -160
+#            inputImage = alpha * inputImage + beta
+#            cleanImage = np.clip(inputImage, 0, 255).astype(np.uint8)
+            return cleanImage 
+        
+    def imageEnhancementV2(inputImage,value=9):#****
+        inImage=Image.fromarray(inputImage)
+        contrast = value
+        enhancer = ImageEnhance.Contrast(inImage)
+        contrast = enhancer.enhance(contrast)
+        inEnhance=np.array(contrast)
+        return inEnhance
+    
+    def ImageenhancementWithHSVandcv2add(Image,value = 42):
+         BGR = cv2.cvtColor(Image, cv2.COLOR_GRAY2BGR)
+         hsv = cv2.cvtColor(BGR, cv2.COLOR_BGR2HSV)
+          #whatever value you want to add
+         cv2.add(hsv[:,:,2], value, hsv[:,:,2])
+         image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+         """
+         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) #convert it to hsv
+         h, s, v = cv2.split(hsv)
+         v += 255
+         final_hsv = cv2.merge((h, s, v))
+         img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)"""
+         return image
+    def ImageenhancementWithHSV(inputImage):
+        #Create the identity filter, but with the 1 shifted to the right!
+            kernel = np.zeros( (9,9), np.float32)
+            kernel[4,4] = 2.0   #Identity, times two! 
+            #Create a box filter:
+            boxFilter = np.ones( (9,9), np.float32) / 81.0
+            #Subtract the two:
+            kernel = kernel - boxFilter
+            #Note that we are subject to overflow and underflow here...but I believe that
+            # filter2D clips top and bottom ranges on the output, plus you'd need a
+            # very bright or very dark pixel surrounded by the opposite type.
+            gray = cv2.filter2D(inputImage, -1, kernel)
+            BGRImage = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+            img_hsv = cv2.cvtColor(BGRImage, cv2.COLOR_BGR2HSV)
+            img_hsv[:,:,2] = [[max(pixel - 25, 0) if pixel < 190 else min(pixel + 25, 255) for pixel in row] for row in img_hsv[:,:,2]]
+            grayscaled = cv2.cvtColor(cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR),cv2.COLOR_BGR2GRAY)
+           # retval, threshold = cv2.threshold(grayscaled, 200, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+#           def increase_brightness(img, value=30):
+#                hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+#                h, s, v = cv2.split(hsv)
+#            
+#                lim = 255 - value
+#                v[v > lim] = 255
+#                v[v <= lim] += value
+#            
+#                final_hsv = cv2.merge((h, s, v))
+#                img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+#                return img
+#            frame = increase_brightness(frame, value=20)
+            return grayscaled
+    
+    def ImageenhancementWithLAB(inputImage,clipLimit=3.0):                                                                                         
+        
+        BGR= cv2.cvtColor(inputImage, cv2.COLOR_GRAY2BGR)
+        lab= cv2.cvtColor(BGR, cv2.COLOR_BGR2LAB)
+#        cv2.imshow("lab",lab)
+#        cv2.waitKey()
+        #-----Splitting the LAB image to different channels-------------------------
+        l, a, b = cv2.split(lab)
+#        cv2.imshow('l_channel', l)
+#        cv2.waitKey()
+#        cv2.imshow('a_channel', a)
+#        cv2.waitKey()
+#        cv2.imshow('b_channel', b)
+#        cv2.waitKey()
+        
+        #-----Applying CLAHE to L-channel-------------------------------------------
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+        cl = clahe.apply(l)
+#        cv2.imshow('CLAHE output', cl)
+#        cv2.waitKey()
+
+        #-----Merge the CLAHE enhanced L-channel with the a and b channel-----------
+        limg = cv2.merge((cl,a,b))
+#        cv2.imshow('limg', limg)
+#        cv2.waitKey()
+
+        #-----Converting image from LAB Color model to RGB model--------------------
+        finalBGR = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+        finalGRAY = cv2.cvtColor(finalBGR, cv2.COLOR_BGR2GRAY)
+#        cv2.imshow('final', final)
+#        cv2.waitKey()
+#        cv2.imshow("lab",lab)
+#        cv2.waitKey()
+        return finalBGR,finalGRAY
+    def addWeighted(inputimage,contrast=0.2,brightness = 9):
+        # call addWeighted function. use beta = 0 to effectively only operate one one image
+        outputimage = cv2.addWeighted( inputimage, contrast, inputimage, 0, brightness)
+        return outputimage
+    def imageEnhancementEQ(inputImage,alpha=0.8,beta=1,eq=3):
+    #         alpha 1  beta 0      --> no change  
+    #         0 < alpha < 1        --> lower contrast  
+    #         alpha > 1            --> higher contrast  
+    #         -127 < beta < +127   --> good range for brightness values
+            if eq ==1:
+                inEnhance = alpha*inputImage + beta #--------------> Eq 1
+            elif eq ==2:
+                 contrast =100
+                 inEnhance = (inputImage - 0.5) * contrast + 0.5   #--------------> Eq 2
+                 #and this modified formula to change the contrast scale to go from -127 to +127:
+            elif eq ==3:
+                 contrast = 127
+                 inEnhance = (inputImage) * (contrast/127 + 1) - contrast      #--------------> Eq 3
+#            elif eq ==4:
+                
+        #         Contrast
+        #        -----------
+        #        In the GIMP, contrast levels go from -127 to +127. I adapted the formulas from here to fit in that range.
+#                contrast=127
+#                f = 131*(contrast + 127)/(127*(131-contrast))  #--------------> Eq 4
+#                new_image = f*(old_image - 127) + 127 = f*(old_image) + 127*(1-f)
+#                #pseudo code
+#                if brightness > 0:
+#                     shadow = brightness
+#                     highlight = 255
+#                else:
+#                     shadow = 0
+#                     highlight = 255 + brightness
+#                new_img = ((highlight - shadow)/255)*old_img + shadow
+    # =============================================================================
+            return inEnhance    
+    def apply_brightness_contrastV1(input_img, contrast = 50, brightness = 30):
+         input_img = np.int16(input_img)
+         input_img = input_img * (contrast/127+1) - contrast + brightness
+         input_img = np.clip(input_img, 0, 255)
+         input_img = np.uint8(input_img)
+         return input_img
+    
+    def apply_brightness_contrast(input_img, contrast = 0.8, brightness = 0):
+#        brightnesslist = [0, -127, 127,   0,  0, 64] # list of brightness values
+#        brightnesslist = [0,    0,   0, -64, 64, 64] # list of contrast values
+        if brightness != 0:
+            if brightness > 0:
+                shadow = brightness
+                highlight = 255
+            else:
+                shadow = 0
+                highlight = 255 + brightness
+            alpha_b = (highlight - shadow)/255
+            gamma_b = shadow
+    
+            buf = cv2.addWeighted(input_img, alpha_b, input_img, 0, gamma_b)
+        else:
+            buf = input_img.copy()
+    
+        if contrast != 0:
+            f = 131*(contrast + 127)/(127*(131-contrast))
+            alpha_c = f
+            gamma_c = 127*(1-f)
+    
+            buf = cv2.addWeighted(buf, alpha_c, buf, 0, gamma_c)
+        return buf
+    def brightness_contrast_manipulation(inputimage): 
+        image = cv2.cvtColor(inputImage, cv2.COLOR_BGR2GRAY)# load as 1-channel 8bit grayscale
+        maxIntensity = 255.0 # depends on dtype of image data
+        x = arange(maxIntensity) 
+        # Parameters for manipulating image data
+        phi = 1
+        theta = 1
+
+        # Increase intensity such that
+        # dark pixels become much brighter, 
+        # bright pixels become slightly bright
+        newImage0 = (maxIntensity/phi)*(image/(maxIntensity/theta))**0.5
+        newImage0 = array(newImage0,dtype=uint8)
+    
+        y = (maxIntensity/phi)*(x/(maxIntensity/theta))**0.5
+    
+        # Decrease intensity such that
+        # dark pixels become much darker, 
+        # bright pixels become slightly dark 
+        newImage1 = (maxIntensity/phi)*(image/(maxIntensity/theta))**2
+        newImage1 = array(newImage1,dtype=uint8)
+        z = (maxIntensity/phi)*(x/(maxIntensity/theta))**2
+    
+#        # Plot the figures
+#        figure()
+#        plot(x,y,'r-') # Increased brightness
+#        plot(x,x,'k:') # Original image
+#        plot(x,z, 'b-') # Decreased brightness
+#        #axis('off')
+#        axis('tight')
+#        show()
+#    
+#        # Close figure window and click on other window 
+#        # Then press any keyboard key to close all windows
+#        closeWindow = -1
+#        while closeWindow<0:
+#            closeWindow = cv2.waitKey(1) 
+#            cv2.destroyAllWindows() 
+        return newImage1
+    ##using PIL
+    def brightness( im,statType = "mean"):
+#       im = Image.open(im).convert('L')
+       stat = ImageStat.Stat(im)
+       if statType=="mean":#Convert image to greyscale, return average pixel brightness.
+           return stat.mean[0]
+       elif statType=="rms":#Convert image to greyscale, return RMS pixel brightness.
+           return stat.rms[0]
+       elif statType=="meanRGB":#Average pixels, then transform to "perceived brightness"
+           r,g,b = stat.mean
+           return math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
+       elif statType=="rmsRGB":#RMS of pixels, then transform to "perceived brightness".
+           r,g,b = stat.rms
+           return math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
+       elif statType=="gs":#Calculate "perceived brightness" of pixels, then return average.
+           gs = (math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2)) 
+                 for r,g,b in im.getdata())
+           return sum(gs)/stat.count[0]   
+        
+    def removeWaterMarkBackground(inputImage,alpha = 2.0,beta = -160):
+        inputImage = cv2.cvtColor(inputImage, cv2.COLOR_GRAY2BGR)
+        image = alpha * inputImage + beta
+        image = np.clip(image, 0, 250).astype(np.uint8)
+        image = cv2.equalizeHist(image)
+        clahe = cv2.createCLAHE(clipLimit=2.1, tileGridSize=(8,8))
+        image = clahe.apply(image)
+        
+#        cv2.imshow("1", np.hstack((inputImage,image)))
+#        cv2.waitKey()
+        return image
+    def removeWaterMarkBackgroundV2(inputImage,fieldName,alpha = 2.5,beta = -200):
+       image = alpha * inputImage + beta
+       image = np.clip(image, 0, 255).astype(np.uint8)
+#           cv2.imshow("1", image)
+#           cv2.waitKey()
+      
+       fieldNamelist =["DATE","PERIOD_From","PERIOD_To"]
+       if fieldName in fieldNamelist :# 'PERIOD_From': #or fieldName == 'PERIOD_From' or fieldName == 'PERIOD_To':
+            image1=np.copy(image)
+            cv2.normalize(image,image1,-0.8, 1.3, norm_type=cv2.NORM_MINMAX)
+#                cv2.imshow("1", image)
+#                cv2.waitKey()
+            rows,cols=image1.shape
+            for i in range(rows):
+                for j in range(cols):
+                    if image1[i,j]==1:
+                        image1[i,j]=255
+                    else:
+                         image1[i,j]=0
+            kernel=np.ones((2,2),np.uint8)
+            image = cv2.morphologyEx(image1, cv2.MORPH_OPEN, kernel)
+#                cv2.imshow("2", image)
+#                cv2.waitKey()
+       return image
+   
+    '''
+    #Computing image “colorfulness” with OpenCV and Python   ''''
+        #https://www.pyimagesearch.com/2017/06/05/computing-image-colorfulness-with-opencv-and-python/
+              
+               
+      
+                --------------------------------------------------                                                                                     
+                 # Example Python Program for contrast stretching
+                 #https://pythontic.com/image-processing/pillow/contrast%20stretching
+                from PIL import Image
+                # Method to process the red band of the image
+                def normalizeRed(intensity):
+                    iI      = intensity
+                    minI    = 86
+                    maxI    = 230
+                    minO    = 0
+                    maxO    = 255
+                    iO      = (iI-minI)*(((maxO-minO)/(maxI-minI))+minO)
+                    return iO
+                # Method to process the green band of the image
+                def normalizeGreen(intensity):
+                    iI      = intensity
+                    minI    = 90
+                    maxI    = 225
+                    minO    = 0
+                    maxO    = 255
+                    iO      = (iI-minI)*(((maxO-minO)/(maxI-minI))+minO)
+                    return iO
+                # Method to process the blue band of the image
+                def normalizeBlue(intensity):
+                    iI      = intensity
+                    minI    = 100
+                    maxI    = 210
+                    minO    = 0
+                    maxO    = 255
+                    iO      = (iI-minI)*(((maxO-minO)/(maxI-minI))+minO)
+                    return iO
+                # Create an image object
+                imageObject     = Image.open("./glare4.jpg")
+                # Split the red, green and blue bands from the Image
+                multiBands      = imageObject.split()
+                # Apply point operations that does contrast stretching on each color band
+                normalizedRedBand      = multiBands[0].point(normalizeRed)
+                normalizedGreenBand    = multiBands[1].point(normalizeGreen)
+                normalizedBlueBand     = multiBands[2].point(normalizeBlue)
+                # Create a new image from the contrast stretched red, green and blue brands
+                normalizedImage = Image.merge("RGB", (normalizedRedBand, normalizedGreenBand, normalizedBlueBand))
+                # Display the image before contrast stretching
+                imageObject.show()
+                # Display the image after contrast stretching
+                normalizedImage.show()
+                        -----------------------------------------------------------------------------
+                img = cv2.imread('your path',0)
+                brt = 40  // value could be + or - for brightness or darkness
+                
+                img[img < 255-brt] += brt    //change any value in the 2D list < max limit
+                
+                cv2.imshow('img'+ img) 
+                ---------------------------------------------------------------------------
+                import numpy as np
+                from PIL import Image
+                
+                # Open the input image as numpy array, convert to greyscale and drop alpha
+                npImage=np.array(Image.open("cartoon.png").convert("L"))
+                
+                # Get brightness range - i.e. darkest and lightest pixels
+                min=np.min(npImage)        # result=144
+                max=np.max(npImage)        # result=216
+                
+                # Make a LUT (Look-Up Table) to translate image values
+                LUT=np.zeros(256,dtype=np.uint8)
+                LUT[min:max+1]=np.linspace(start=0,stop=255,num=(max-min)+1,endpoint=True,dtype=np.uint8)
+                
+                # Apply LUT and save resulting image
+                Image.fromarray(LUT[npImage]).save('result.png')
+                ------------------------------------------------------------------------------------
+                def change_contrast(img, level):
+                    factor = (259 * (level + 255)) / (255 * (259 - level))
+                    def contrast(c):
+                        return 128 + factor * (c - 128)
+                    return img.point(contrast)
+        
+        change_contrast(Image.open('barry.png'), 100)
+        ---------------------------------------------------------------------------------------------
+            def change_contrast_multi(img, steps):
+                width, height = img.size
+                canvas = Image.new('RGB', (width * len(steps), height))
+                for n, level in enumerate(steps):
+                    img_filtered = change_contrast(img, level)
+                    canvas.paste(img_filtered, (width * n, 0))
+                return canvas
+        
+        change_contrast_multi(Image.open('barry.png'), [-100, 0, 100, 200, 300])
+        ----------------------------------------------------------------------------------------------
+        def change_contrast(img, level):
+            factor = (259 * (level + 255)) / (255 * (259 - level))
+            def contrast(c):
+                value = 128 + factor * (c - 128)
+                return max(0, min(255, value))
+            return img.point(contrast)
+            --------------------------------------------------
+        import cv2
+        import numpy as np
+        image = cv2.imread('image.jpg')
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        increase = 100
+        v = image[:, :, 2]
+        v = np.where(v <= 255 - increase, v + increase, 255)
+        image[:, :, 2] = v
+        image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+        cv2.imshow('Brightness', image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        ------------------------------------------
+        ################################################
+        def auto_brightandcontrast(input_img, channel, clip_percent=1):
+            histSize=180
+            alpha=0
+            beta=0
+            minGray=0
+            maxGray=0
+            accumulator=[]
+        
+            if(clip_percent==0):
+                #min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(hist)
+                return input_img
+        
+            else:
+                hist = cv2.calcHist([input_img],[channel],None,[256],[0, 256])
+                accumulator.insert(0,hist[0])    
+        
+                for i in range(1,histSize):
+                    accumulator.insert(i,accumulator[i-1]+hist[i])
+        
+                maxx=accumulator[histSize-1]
+                minGray=0
+        
+                clip_percent=clip_percent*(maxx/100.0)
+                clip_percent=clip_percent/2.0
+        
+                while(accumulator[minGray]<clip_percent[0]):
+                    minGray=minGray+1
+        
+                maxGray=histSize-1
+                while(accumulator[maxGray]>=(maxx-clip_percent[0])):
+                    maxGray=maxGray-1
+        
+                inputRange=maxGray-minGray
+        
+                alpha=(histSize-1)/inputRange
+                beta=-minGray*alpha
+        
+                out_img=input_img.copy()
+        
+                cv2.convertScaleAbs(input_img,out_img,alpha,beta)
+        
+                return out_img
+                ###############################################################
+                from wand.image import Image    
+        
+            with Image(filename='task4.jpg') as img:
+                img.contrast_stretch(black_point=0.02, white_point=0.99)
+                img.save(filename='task4_stretch2_99.jpg')
+                ###########################################################
+                
+                #########################################################
+                import cv2
+         #https://www.life2coding.com/change-brightness-and-contrast-of-images-using-opencv-python/
+        def funcBrightContrast(bright=0):
+            bright = cv2.getTrackbarPos('bright', 'Life2Coding')
+            contrast = cv2.getTrackbarPos('contrast', 'Life2Coding')
+         
+            effect = apply_brightness_contrast(img,bright,contrast)
+            cv2.imshow('Effect', effect)
+         
+        def apply_brightness_contrast(input_img, brightness = 255, contrast = 127):
+            brightness = map(brightness, 0, 510, -255, 255)
+            contrast = map(contrast, 0, 254, -127, 127)
+         
+            if brightness != 0:
+                if brightness > 0:
+                    shadow = brightness
+                    highlight = 255
+                else:
+                    shadow = 0
+                    highlight = 255 + brightness
+                alpha_b = (highlight - shadow)/255
+                gamma_b = shadow
+         
+                buf = cv2.addWeighted(input_img, alpha_b, input_img, 0, gamma_b)
+            else:
+                buf = input_img.copy()
+         
+            if contrast != 0:
+                f = float(131 * (contrast + 127)) / (127 * (131 - contrast))
+                alpha_c = f
+                gamma_c = 127*(1-f)
+         
+                buf = cv2.addWeighted(buf, alpha_c, buf, 0, gamma_c)
+         
+            cv2.putText(buf,'B:{},C:{}'.format(brightness,contrast),(10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            return buf
+         
+        def map(x, in_min, in_max, out_min, out_max):
+            return int((x-in_min) * (out_max-out_min) / (in_max-in_min) + out_min)
+         
+        if __name__ == '__main__':
+         
+            original = cv2.imread("./hanif.jpg", 1)
+            img = original.copy()
+         
+            cv2.namedWindow('Life2Coding',1)
+         
+            bright = 255
+            contrast = 127
+         
+            #Brightness value range -255 to 255
+            #Contrast value range -127 to 127
+         
+            cv2.createTrackbar('bright', 'Life2Coding', bright, 2*255, funcBrightContrast)
+            cv2.createTrackbar('contrast', 'Life2Coding', contrast, 2*127, funcBrightContrast)
+            funcBrightContrast(0)
+            cv2.imshow('Life2Coding', original)
+         
+         #####################################################################################
+        cv2.waitKey(0)
+                
+             
+                
+        linkes :https://likegeeks.com/python-image-processing/    '''

@@ -1,1 +1,24 @@
 
+numpy==1.16.4
+matplotlib==3.0.3
+tensorflow==1.13.1
+h5py
+pandas
+Keras
+opencv-python
+sklearn
+pyqt5==5.12.2
+cython
+pyinstaller
+tifffile
+pillow
+pytest-shutil
+scikit-image
+rope
+requests
+spyder
+easygui
+jupyter
+
+
+

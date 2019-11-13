@@ -1,0 +1,23 @@
+To crate pyd files from anaconda console ===> python AntsteinhwCMRsetup.py build_ext --inplace
+To Create EXE File from CMD Prompt===>pyinstaller --onefile hello1.py
+
+python -m spyder.app.start-----------------> to start spyder in CMD
+installation of tensorflow thru CMD    ---> python -m pip install --upgrade pip install -U --ignore-installed --upgrade https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.12.0-py3-none-any.whl
+
+pip install --ignore-installed package-name-here
+
+pip install numpy --upgrade --ignore-installed
+
+pip install win-unicode-console
+
+--hidden-import ctypes
+
+python -m pip install --upgrade pip
+
+to Export packages installed in python to requierements.txt------> pip freeze > requirements.txt
+							   ------> pip list > requirements.txt
+to list the packages installed in python along with versions ------>pip freeze
+to list the packages installed in python -------------------------->pip list
+to install the pakages list in requierements.txt file in python environment ------->pip install -r requirements.txt
+
+

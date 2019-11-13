@@ -20,4 +20,6 @@ to list the packages installed in python along with versions ------>pip freeze
 to list the packages installed in python -------------------------->pip list
 to install the pakages list in requierements.txt file in python environment ------->pip install -r requirements.txt
 
+writer = csv.writer(outfile,quoting=csv.QUOTE_NONE, escapechar=' ')
+
 

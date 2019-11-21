@@ -1,4 +1,4 @@
-To crate pyd files from anaconda console ===> python AntsteinhwCMRsetup.py build_ext --inplace
+To crate pyd files from anaconda console ===> python setup.py build_ext --inplace
 To Create EXE File from CMD Prompt===>pyinstaller --onefile hello1.py
 
 python -m spyder.app.start-----------------> to start spyder in CMD

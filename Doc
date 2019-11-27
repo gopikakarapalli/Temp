@@ -4,10 +4,14 @@
 	Link: https://stats.stackexchange.com/questions/126238/what-are-the-advantages-of-relu-over-sigmoid-function-in-deep-neural-networks
 3) Types of Optimization Algorithms used in Neural Networks and Ways to Optimize Gradient Descent
 	link: https://towardsdatascience.com/types-of-optimization-algorithms-used-in-neural-networks-and-ways-to-optimize-gradient-95ae5d39529f
-4) Deep Learning : Autoencoders Fundamentals and types 
+4) Up-sampling with Transposed Convolution:
+	link: https://medium.com/activating-robotic-minds/up-sampling-with-transposed-convolution-9ae4f2df52d0
+	
+	
+5) Deep Learning : Autoencoders Fundamentals and types 
 	LINK: https://codeburst.io/deep-learning-types-and-autoencoders-a40ee6754663
 	Link:  https://iq.opengenus.org/types-of-autoencoder/
-5) unet:https:
+6) unet:https:
          linl: //towardsdatascience.com/understanding-semantic-segmentation-with-unet-6be4f42d4b47
 	 code Link:https://github.com/zhixuhao/unet
 	 data set: https://www.kaggle.com/c/tgs-salt-identification-challenge/data

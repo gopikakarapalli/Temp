@@ -16,5 +16,7 @@
          linl: //towardsdatascience.com/understanding-semantic-segmentation-with-unet-6be4f42d4b47
 	 link2:https://towardsdatascience.com/u-net-b229b32b4a71
 	 code Link:https://github.com/zhixuhao/unet
+	 new version unt model differnce size of images:
+	 	link: https://github.com/zizhaozhang/unet-tensorflow-keras/blob/master/model.py
 	 data set: https://www.kaggle.com/c/tgs-salt-identification-challenge/data
 

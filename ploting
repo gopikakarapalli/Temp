@@ -1,0 +1,13 @@
+def show_filters(layer_name, input_img):
+    print(layer_name)
+    plt.figure(figsize=(25,5))
+    for i in range(20):
+        result = layer_image(model, layer_name, filter_index=i, input_img=input_img)    
+        plt.subplot(2, 10, i+1)
+        plt.imshow(result)
+        plt.xticks([])
+        plt.yticks([])
+    plt.tight_layout()
+    plt.show()
+    
+    #show_filters('block1_conv1', inputimag)

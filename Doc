@@ -2,6 +2,8 @@
 	Link: https://medium.com/the-theory-of-everything/understanding-activation-functions-in-neural-networks-9491262884e0
 2) What are the advantages of ReLU over sigmoid function in deep neural networks?
 	Link: https://stats.stackexchange.com/questions/126238/what-are-the-advantages-of-relu-over-sigmoid-function-in-deep-neural-networks
+	#What are the advantages of ReLU vs Leaky ReLU and Parametric ReLU (if any):
+		link :https://ai.stackexchange.com/questions/7274/what-are-the-advantages-of-relu-vs-leaky-relu-and-parametric-relu-if-any
 3) Types of Optimization Algorithms used in Neural Networks and Ways to Optimize Gradient Descent
 	link: https://towardsdatascience.com/types-of-optimization-algorithms-used-in-neural-networks-and-ways-to-optimize-gradient-95ae5d39529f
 4) Up-sampling with Transposed Convolution:
